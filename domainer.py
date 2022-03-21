@@ -5,8 +5,8 @@ from domeneshop import Client
 import os
 import secrets
 
-MODEM_USER = secrets.MODEM_USER
-MODEM_PASSWORD = secrets.MODEM_PASSWORD
+#MODEM_USER = secrets.MODEM_USER
+#MODEM_PASSWORD = secrets.MODEM_PASSWORD
 TOKEN = secrets.TOKEN
 SECRET = secrets.SECRET
 DOMAIN_ID = secrets.DOMAIN_ID
@@ -25,7 +25,7 @@ class Domainer():
         self.token = TOKEN
         self.secret = SECRET
         self.domene_auth()
-    
+
     def domene_auth(self):
         try:
             client = Client(self.token, self.secret)
@@ -39,16 +39,26 @@ class Domainer():
         record["data"] = ip
         del record["id"]
         client.modify_record(DOMAIN_ID, RECORD_ID, record)
-    
+
     def auth_sagemcom(self):
-        client = Sagemcomclient(MODEM_USER, MODEM_PASSWORD)
+        client = Sagemcomclient(secrets.MODEM_USER, secrets.MODEM_PASSWORD)
         client.login() # will raise an exception on login failed
         return client
 
-    def get_ip(self):
+    def get_ip_sagemcom(self):
         client = self.auth_sagemcom()
         query = client.get_values_tree('Device/DHCPv4/Clients')
         ip = query["parameters"]["value"][0]["IPAddress"]
+        if self.send_pings():
+            self.check_ip(ip)
+        else:
+            self.log_update("Offline")
+
+    def get_ip(self):
+        cmd = "curl ifconfig.me"
+        process = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
+        ip = output.decode("ascii")
         if self.send_pings():
             self.check_ip(ip)
         else:
