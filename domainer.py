@@ -3,6 +3,7 @@ import datetime
 from sagemcom.sagemcomclient import Sagemcomclient
 from domeneshop import Client
 import os
+import subprocess
 import secrets
 
 #MODEM_USER = secrets.MODEM_USER
@@ -102,5 +103,3 @@ class Domainer():
 if __name__ == "__main__":
     domainer = Domainer()
     domainer.get_ip()
-
-
